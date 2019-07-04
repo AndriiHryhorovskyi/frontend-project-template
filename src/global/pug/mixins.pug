@@ -1,0 +1,6 @@
+mixin image(imgName,alt,widths=[320, 480, 640, 720, 1280, 1360, 1920, 2048, 3840])
+	if /\.(png|jpe?g)$/.test(imgName)
+		- var rImage = require(`../../img/content/${imgName}?sizes[]=320,sizes[]=480,sizes[]=640,sizes[]=720,sizes[]=1280,sizes[]=1360,sizes[]=1920,sizes[]=2048,sizes[]=3840`)
+		img(src=`${rImage.src}` alt=`${alt}` srcset=`${rImage.srcSet}`)
+	else
+		img(src=`/img/content/${imgName}` alt=`${alt}`)

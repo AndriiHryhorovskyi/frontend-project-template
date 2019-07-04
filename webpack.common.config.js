@@ -2,16 +2,21 @@ const path = require("path");
 const fs = require("fs");
 const htmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const content = require("./content.json");
 
-const distPath = path.resolve(__dirname, "../dist");
-const srcPath = path.resolve(__dirname, "../src");
-const entriesPath = path.resolve(__dirname, "entries");
+const distPath = path.resolve(__dirname, "./dist");
+const srcPath = path.resolve(__dirname, "./src");
+const entriesPath = path.resolve(__dirname, "./src/pages");
 
-const entry = {};
+const entry = { images: path.resolve(srcPath, "img/index.js") };
 
-fs.readdirSync(entriesPath).forEach(file => {
-  const fileName = path.basename(file, ".js");
-  entry[fileName] = path.resolve(entriesPath, file);
+const pages = fs
+  .readdirSync(entriesPath, { withFileTypes: true })
+  .filter(dirent => dirent.isDirectory())
+  .map(dirent => dirent.name);
+
+pages.forEach(page => {
+  entry[page] = path.resolve(entriesPath, `${page}/${page}.js`);
 });
 
 module.exports = {
@@ -20,18 +25,19 @@ module.exports = {
     entry,
     output: {
       filename: "scripts/[name].[contenthash].js",
-      path: distPath
+      path: distPath,
+      publicPath: "/"
     },
     module: {
       rules: [
         {
-          test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
+          test: /\.pug$/,
           use: [
             {
-              loader: "file-loader",
+              loader: "pug-loader",
               options: {
-                name: "[name].[ext]",
-                emitFile: false
+                self: true,
+                globals: true
               }
             }
           ]
@@ -40,8 +46,15 @@ module.exports = {
           test: /[\\/]content[\\/].*\.(png|jpe?g)$/i,
           loader: "responsive-loader",
           options: {
-            name: "[path][name]-[width].[ext]",
-            sizes: [320, 480, 640, 720, 1280, 1360, 1920, 2048, 3840]
+            name: "[path][name]-[width].[hash].[ext]",
+            quality: 0
+          }
+        },
+        {
+          test: /[\\/]content[\\/].*\.(gif|svg)$/i,
+          loader: "file-loader",
+          options: {
+            name: "[path][name].[ext]"
           }
         },
         {
@@ -60,18 +73,23 @@ module.exports = {
           }
         },
         {
-          test: /[\\/]background|icons[\\/].*\.(png|jpe?g|gif|ico|svg)$/i,
+          test: /[\\/](background|icons)[\\/].*\.(png|jpe?g|gif|ico|svg)$/i,
           loader: "file-loader",
           options: {
             name: "[path][name].[ext]"
           }
         },
         {
-          test: /\.(gif|svg)$/i,
-          loader: "file-loader",
-          options: {
-            name: "[path][name].[ext]"
-          }
+          test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
+          use: [
+            {
+              loader: "file-loader",
+              options: {
+                name: "[name].[ext]",
+                emitFile: false
+              }
+            }
+          ]
         }
       ]
     },
@@ -92,7 +110,6 @@ module.exports = {
               );
               const packageName = match ? match[1] : "vendors";
 
-              console.log("\n\n\n", packageName, "\n\n\n");
               // npm package names are URL-safe, but some servers don't like @ symbols
               return `npm.${packageName.replace("@", "")}`;
             }
@@ -101,15 +118,20 @@ module.exports = {
       }
     },
     plugins: [
-      new htmlWebpackPlugin({
-        template: path.resolve(srcPath, "index.html"),
-        filename: "index.html",
-        minify: {
-          collapseWhitespace: true,
-          collapseInlineTagWhitespace: true,
-          removeComments: true
-        }
-      }),
+      ...pages.map(
+        page =>
+          new htmlWebpackPlugin({
+            template: path.resolve(srcPath, `pages/${page}/${page}.pug`),
+            filename: path.join("pages", `${page}.html`),
+            excludeChunks: [...pages.filter(p => p != page), "images"],
+            minify: {
+              collapseWhitespace: true,
+              collapseInlineTagWhitespace: true,
+              removeComments: true
+            },
+            ...content
+          })
+      ),
       new CopyWebpackPlugin([
         {
           from: path.join(srcPath, "fonts"),

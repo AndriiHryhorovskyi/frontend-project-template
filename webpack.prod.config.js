@@ -13,6 +13,8 @@ const tinyPngWebpackPlugin = require("tinypng-webpack-plugin");
 const ImageminPlugin = require("imagemin-webpack");
 const imageminSvgo = require("imagemin-svgo");
 const imageminGifsicle = require("imagemin-gifsicle");
+const imageminJpegtran = require("imagemin-jpegtran");
+const imageminOptipng = require("imagemin-optipng");
 
 const { config } = require("./webpack.common.config");
 
@@ -21,29 +23,48 @@ const plugins = [
   new webpack.HashedModuleIdsPlugin(),
   new MiniCssExtractPlugin({
     filename: path.join("styles", "[name].[contenthash].css")
-  }),
-  new ImageminPlugin({
-    imageminOptions: {
-      plugins: [
-        imageminGifsicle({
-          optimizationLevel: 3
-        }),
-
-        imageminSvgo({
-          removeTitle: true,
-          convertPathData: false
-        })
-      ]
-    }
   })
 ];
 process.env.tinyPngApiKey
   ? plugins.push(
       new tinyPngWebpackPlugin({
         key: process.env.tinyPngApiKey
+      }),
+      new ImageminPlugin({
+        imageminOptions: {
+          plugins: [
+            imageminGifsicle({
+              optimizationLevel: 3
+            }),
+            imageminSvgo({
+              removeTitle: true,
+              convertPathData: false
+            })
+          ]
+        }
       })
     )
-  : null;
+  : plugins.push(
+      new ImageminPlugin({
+        imageminOptions: {
+          plugins: [
+            imageminGifsicle({
+              optimizationLevel: 3
+            }),
+            imageminSvgo({
+              removeTitle: true,
+              convertPathData: false
+            }),
+            imageminJpegtran({
+              progressive: true
+            }),
+            imageminOptipng({
+              optimizationLevel: 7
+            })
+          ]
+        }
+      })
+    );
 
 module.exports = merge(config, {
   mode: "production",

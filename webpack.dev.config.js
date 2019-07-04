@@ -1,3 +1,4 @@
+const path = require("path");
 const merge = require("webpack-merge");
 const webpack = require("webpack");
 const { config, vars } = require("./webpack.common.config");
@@ -16,12 +17,13 @@ module.exports = merge(config, {
       }
     ]
   },
-  devtool: "eval-source-map",
+  devtool: "eval",
   devServer: {
     port: 4000,
-    publicPath: "/",
     contentBase: vars.distPath,
-    overlay: true
+    overlay: true,
+    open: true,
+    openPage: "pages"
   },
   plugins: [new webpack.NamedChunksPlugin()]
 });

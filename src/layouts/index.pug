@@ -1,0 +1,51 @@
+- var content = self.htmlWebpackPlugin.options
+include ../global/pug/mixins.pug
+include ../components/header/header.pug
+include ../components/footer/footer.pug
+block variables
+
+doctype html
+html(lang="en")
+	head
+		meta(charset="utf-8")
+		base(href="/")
+		title=pageTitle
+		//- meta(name="description" content="")
+		
+		meta(http-equiv="X-UA-Compatible" content="IE=edge")
+		meta(
+			name="viewport"
+			content="width=device-width, initial-scale=1.0"
+		)
+		
+		link(href="manifest.json" rel="manifest")
+		link(
+			rel="icon"
+			href="img/favicons/favicon-16.png"
+			sizes="16x16"
+			type="image/png"
+		)
+		link(
+			rel="icon"
+			href="img/favicons/favicon-32.png"
+			sizes="32x32"
+			type="image/png"
+		)
+		link(
+			rel="apple-touch-icon"
+			sizes="180x180"
+			href="img/favicons/favicon-180.png"
+		)
+		
+		//- Custom browsers color
+		//- meta(name="theme-color" content="#000")
+		|
+		//- Open Graph Settings
+		//- meta(property="og:image" content="path/to/image.jpg")
+	body
+		//- Custom sections here
+		block header
+			+header
+		block main
+		block footer
+			+footer
